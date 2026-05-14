@@ -1,0 +1,57 @@
+# 正式站：推上 GitHub 後自動建置並發佈到 GitHub Pages。
+# 1. 建一個 GitHub 儲存庫並把此專案 push 上去
+# 2. Settings → Pages → Build and deployment → Source 選「GitHub Actions」
+# 3. Actions 分頁確認 workflow 跑完，網址會出現在 Pages 設定或該次 run 的 summary
+name: Deploy static site to GitHub Pages
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 計算 Vite base（專案站 /repo/；username.github.io 根站用 /）
+        run: |
+          NAME="${{ github.event.repository.name }}"
+          if [[ "$NAME" == *.github.io ]]; then
+            echo "VITE_BASE_URL=/" >> "$GITHUB_ENV"
+          else
+            echo "VITE_BASE_URL=/${NAME}/" >> "$GITHUB_ENV"
+          fi
+          echo "Using VITE_BASE_URL=$VITE_BASE_URL"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - run: npm ci
+      - run: npm run build
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
