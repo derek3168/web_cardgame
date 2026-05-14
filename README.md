@@ -26,16 +26,26 @@ npm run build
 
 ## 正式給大家看的網站（上線）
 
-### 方式 A：GitHub Pages（已內建 CI）
+### 方式 A：GitHub Pages
 
-1. 在 GitHub **建立新儲存庫**，把本專案 push 到 `main` 或 `master`。  
-2. 儲存庫 **Settings → Pages**：**Build and deployment** 的 **Source** 選 **GitHub Actions**（不要選 Deploy from a branch）。  
-3. 到 **Actions** 等「Deploy static site to GitHub Pages」跑完（約 1～2 分鐘）。  
-4. 再到 **Settings → Pages** 查看 **Visit site** 的網址。  
-   - 一般專案庫網址為：`https://<你的帳號>.github.io/<儲存庫名>/`  
-   - 若儲存庫名為 `<帳號>.github.io`（使用者首頁站），workflow 會自動用 `base: '/'`，網址為 `https://<帳號>.github.io/`。
+#### 第一次 push（HTTPS + PAT 沒有 `workflow` 權限時）
 
-建置時會依儲存庫名稱設定 `VITE_BASE_URL`，無須手改 [vite.config.ts](vite.config.ts)。若要改路徑，可在該 workflow 裡調整「計算 Vite base」步驟。
+本倉庫的 Actions 設定檔放在 **[`deploy-github-pages.yml.example`](deploy-github-pages.yml.example)**（不在 `.github/workflows/`，避免 push 被 GitHub 拒絕）。
+
+1. 照平常 `git push` 把程式推上 GitHub。  
+2. 在 GitHub 該 repo 頁面：**Add file → Create new file**。  
+3. 檔名填：**`.github/workflows/deploy-github-pages.yml`**（含路徑）。  
+4. 把本機 [`deploy-github-pages.yml.example`](deploy-github-pages.yml.example) **全文複製貼上** → **Commit changes**（用瀏覽器登入，不依賴 PAT 的 `workflow` scope）。  
+5. **Settings → Pages → Source** 選 **GitHub Actions**。  
+6. 到 **Actions** 等部署跑完，在 **Settings → Pages** 看 **Visit site**。
+
+一般網址為：`https://<帳號>.github.io/<倉庫名>/`。若倉庫名為 `<帳號>.github.io`，workflow 內會用 `base: '/'`。
+
+若你的 PAT **已勾選 `workflow`（Classic）或 Workflows Read and write（Fine-grained）**，也可把 `deploy-github-pages.yml.example` 複製成 `.github/workflows/deploy-github-pages.yml` 後用 git 推送，不必經網頁貼上。
+
+#### 建置路徑
+
+建置時會依倉庫名稱設定 `VITE_BASE_URL`，無須手改 [vite.config.ts](vite.config.ts)。
 
 ### 方式 B：Vercel / Cloudflare Pages
 

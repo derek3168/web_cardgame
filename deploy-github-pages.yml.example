@@ -1,7 +1,7 @@
-# 正式站：推上 GitHub 後自動建置並發佈到 GitHub Pages。
-# 1. 建一個 GitHub 儲存庫並把此專案 push 上去
-# 2. Settings → Pages → Build and deployment → Source 選「GitHub Actions」
-# 3. Actions 分頁確認 workflow 跑完，網址會出現在 Pages 設定或該次 run 的 summary
+# 複製此檔內容到 GitHub：Add file → Create new file → 路徑填
+# .github/workflows/deploy-github-pages.yml → Commit（用瀏覽器登入，不需 PAT 的 workflow 權限）
+#
+# 若本機 PAT 已含「workflow」權限，也可把本檔複製為 .github/workflows/deploy-github-pages.yml 後 git push。
 name: Deploy static site to GitHub Pages
 
 on:
@@ -32,7 +32,6 @@ jobs:
           else
             echo "VITE_BASE_URL=/${NAME}/" >> "$GITHUB_ENV"
           fi
-          echo "Using VITE_BASE_URL=$VITE_BASE_URL"
 
       - uses: actions/setup-node@v4
         with:
