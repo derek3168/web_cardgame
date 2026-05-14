@@ -1,0 +1,56 @@
+# 複製此檔內容到 GitHub：Add file → Create new file → 路徑填
+# .github/workflows/deploy-github-pages.yml → Commit（用瀏覽器登入，不需 PAT 的 workflow 權限）
+#
+# 若本機 PAT 已含「workflow」權限，也可把本檔複製為 .github/workflows/deploy-github-pages.yml 後 git push。
+name: Deploy static site to GitHub Pages
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 計算 Vite base（專案站 /repo/；username.github.io 根站用 /）
+        run: |
+          NAME="${{ github.event.repository.name }}"
+          if [[ "$NAME" == *.github.io ]]; then
+            echo "VITE_BASE_URL=/" >> "$GITHUB_ENV"
+          else
+            echo "VITE_BASE_URL=/${NAME}/" >> "$GITHUB_ENV"
+          fi
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - run: npm ci
+      - run: npm run build
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
